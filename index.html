@@ -1,0 +1,782 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Tabellone – Ruota (TV)</title>
+    <style>
+      :root {
+        --tile: 72px;
+        --gap: 12px;
+        --cols: 14; /* solo indicativo; la griglia vera la fa JS */
+        --ice-900: #0c1c36;
+        --ice-800: #0f2a55;
+        --ice-700: #14355e;
+        --ice-600: #1f4c75;
+        --snow: #f7fbff;
+        --glow: #8ed4ff;
+        --accent-red: #f04e45;
+        --snow-drift: rgba(255, 255, 255, 0.45);
+      }
+
+      body {
+        margin: 0;
+        font-family: "Bebas Neue", "Oswald", "Tahoma", sans-serif;
+        background: linear-gradient(195deg, #f7fbff 0%, #d7e6ff 45%, #afc5ff 100%);
+        color: var(--ice-900);
+        display: flex;
+        min-height: 100vh;
+        align-items: center;
+        justify-content: center;
+        letter-spacing: 0.6px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          radial-gradient(circle at 20% 20%, var(--snow-drift) 0 2px, transparent 3px),
+          radial-gradient(circle at 60% 40%, var(--snow-drift) 0 1px, transparent 3px),
+          radial-gradient(circle at 80% 10%, var(--snow-drift) 0 1.5px, transparent 3px); 
+        background-size: 180px 180px, 120px 120px, 200px 200px;
+        opacity: 0.6;
+        pointer-events: none;
+        z-index: 0;
+      }
+
+      .wrap {
+        width: min(1220px, 96vw);
+        padding: 32px;
+        position: relative;
+        z-index: 1;
+      }
+
+      .topline {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 30px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 1.6px;
+      }
+      .cat {
+        opacity: 0.9;
+        font-size: 16px;
+        text-transform: uppercase;
+      }
+
+      .board {
+        padding: 24px;
+        border-radius: 26px;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 255, 255, 0.25),
+            rgba(255, 255, 255, 0.04)
+          ),
+          repeating-linear-gradient(
+            90deg,
+            rgba(255, 255, 255, 0.08) 0,
+            rgba(255, 255, 255, 0.08) 16px,
+            transparent 16px,
+            transparent 32px
+          );
+        border: 1px solid rgba(183, 205, 255, 0.5);
+        box-shadow:
+          0 24px 70px rgba(15, 24, 45, 0.45),
+          0 0 30px rgba(142, 212, 255, 0.3);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .board::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: url("Milano_Cortina_2026_Cauldron_1.jpg") center/cover no-repeat;
+        opacity: 0.18;
+        filter: saturate(1.1) contrast(1.05);
+        pointer-events: none;
+      }
+
+      .board::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.45) 0 2px, transparent 3px),
+          radial-gradient(circle at 32% 65%, rgba(255, 255, 255, 0.35) 0 1.5px, transparent 3px),
+          radial-gradient(circle at 72% 25%, rgba(255, 255, 255, 0.4) 0 2px, transparent 3px),
+          radial-gradient(circle at 84% 70%, rgba(255, 255, 255, 0.35) 0 1.5px, transparent 3px),
+          radial-gradient(circle at 55% 45%, rgba(255, 255, 255, 0.3) 0 1.2px, transparent 3px);
+        opacity: 0.55;
+        mix-blend-mode: screen;
+        pointer-events: none;
+      }
+
+      .board > * {
+        position: relative;
+        z-index: 1;
+      }
+
+      .badge {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        width: 132px;
+        height: auto;
+        opacity: 0.95;
+        filter: drop-shadow(0 16px 24px rgba(5, 10, 20, 0.55));
+        z-index: 2;
+      }
+
+      .win-overlay {
+        position: fixed;
+        inset: 0;
+        display: grid;
+        place-items: center;
+        background: rgba(5, 10, 22, 0.55);
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.4s ease;
+        z-index: 30;
+      }
+
+      .win-overlay.active {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .win-card {
+        display: grid;
+        place-items: center;
+        gap: 14px;
+        padding: 20px 24px 26px;
+        border-radius: 20px;
+        background: rgba(10, 20, 40, 0.85);
+        border: 1px solid rgba(124, 212, 255, 0.5);
+        box-shadow:
+          0 24px 70px rgba(0, 0, 0, 0.55),
+          0 0 30px rgba(124, 212, 255, 0.35);
+        transform: scale(0.8);
+        opacity: 0;
+        transition: transform 0.4s ease, opacity 0.4s ease;
+      }
+
+      .win-overlay.active .win-card {
+        transform: scale(1);
+        opacity: 1;
+      }
+
+      .win-text {
+        font-size: 22px;
+        text-transform: uppercase;
+        letter-spacing: 1.4px;
+        text-align: center;
+      }
+
+      .win-image {
+        width: min(360px, 72vw);
+        height: auto;
+        border-radius: 16px;
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
+        transform: scale(0.9);
+        opacity: 0;
+        transition: transform 0.6s ease, opacity 0.6s ease;
+      }
+
+      .win-overlay.active .win-image {
+        opacity: 1;
+        transform: scale(1.03);
+        animation: winPulse 1.4s ease-in-out;
+      }
+
+      @keyframes winPulse {
+        0% {
+          transform: scale(0.95);
+        }
+        50% {
+          transform: scale(1.06);
+        }
+        100% {
+          transform: scale(1.02);
+        }
+      }
+
+      .win-overlay.fade {
+        opacity: 0;
+      }
+
+      .win-overlay.fade .win-card {
+        opacity: 0;
+        transform: scale(0.92);
+        transition-delay: 0.1s;
+      }
+
+      .win-overlay.fade .win-text {
+        opacity: 0;
+        transform: translateY(-6px);
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        transition-delay: 0s;
+      }
+
+      /* Righe stile TV: griglia fissa e centrata */
+      .row {
+        display: grid;
+        gap: var(--gap);
+        justify-content: center;
+        margin: 10px 0;
+        grid-auto-rows: var(--tile);
+      }
+
+      .tile {
+        width: var(--tile);
+        height: var(--tile);
+        border-radius: 14px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(
+          180deg,
+          rgba(255, 255, 255, 0.6),
+          rgba(138, 197, 255, 0.25)
+        );
+        border: 1px solid rgba(142, 212, 255, 0.6);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.6),
+          0 8px 22px rgba(10, 26, 50, 0.55);
+        font-size: 38px;
+        font-weight: 900;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        position: relative;
+        transform: translateZ(0);
+        user-select: none;
+        color: var(--ice-900);
+      }
+      .tile span {
+        color: var(--ice-900);
+      }
+
+      .tile.hidden span {
+        opacity: 0;
+      }
+      .tile.hidden::after {
+        content: "";
+        position: absolute;
+        left: 10px;
+        right: 10px;
+        bottom: 10px;
+        height: 4px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--glow), transparent 90%);
+      }
+
+      .tile.punct {
+        background: transparent;
+        border: 0;
+        font-size: 28px;
+        font-weight: 900;
+        color: rgba(243, 247, 255, 0.9);
+      }
+
+      /* spazio: una cella vuota (come TV) */
+      .tile.space {
+        background: transparent;
+        border: 0;
+      }
+
+      /* "celle vuote" per riempire la riga e centrarla */
+      .tile.blank {
+        visibility: hidden;
+        border: 0;
+        background: transparent;
+      }
+
+      .tile.reveal {
+        animation: pop 0.22s ease-out;
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(0.92);
+          filter: brightness(1);
+        }
+        60% {
+          transform: scale(1.06);
+          filter: brightness(1.2);
+        }
+        100% {
+          transform: scale(1);
+          filter: brightness(1);
+        }
+      }
+
+      .controls {
+        margin-top: 20px;
+        display: flex;
+        gap: 14px;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .controls .left {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+
+      input {
+        background: rgba(255, 255, 255, 0.9);
+        border: 1px solid rgba(16, 33, 65, 0.25);
+        color: var(--ice-900);
+        padding: 12px 16px;
+        border-radius: 14px;
+        font-size: 18px;
+        width: 250px;
+        outline: none;
+        box-shadow: inset 0 0 12px rgba(120, 151, 210, 0.25);
+      }
+
+      button {
+        background: linear-gradient(180deg, #2f8bdc, #1b5fb0);
+        border: 0;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 14px;
+        font-weight: 800;
+        cursor: pointer;
+        box-shadow: 0 12px 26px rgba(16, 44, 90, 0.45);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        font-size: 16px;
+      }
+
+      button.secondary {
+        background: linear-gradient(180deg, #f06159, #c93b33);
+      }
+
+      .meta {
+        opacity: 0.9;
+        font-size: 14px;
+        text-transform: uppercase;
+        color: #13274c;
+      }
+      .bad {
+        color: #ffb4b4;
+      }
+      .good {
+        color: #b9ffcc;
+      }
+      .used {
+        opacity: 0.75;
+        font-size: 13px;
+      }
+      code {
+        background: rgba(255, 255, 255, 0.08);
+        padding: 2px 6px;
+        border-radius: 8px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="wrap">
+      <div class="topline">
+        <h1>Tabellone frase (TV)</h1>
+        <div class="cat">Categoria: <strong id="category">—</strong></div>
+      </div>
+
+      <img
+        class="badge"
+        src="milano_cortina_2026-logo_brandlogos.net_5hbgb-512x571.png"
+        alt="Milano Cortina 2026"
+      />
+
+      <div id="winOverlay" class="win-overlay" aria-hidden="true">
+        <div class="win-card" role="dialog" aria-live="polite">
+          <div class="win-text">compliemnti! 20 cromosomi per te!</div>
+          <img class="win-image" src="down.webp" alt="Premio" />
+        </div>
+      </div>
+
+      <div id="board" class="board" aria-label="Tabellone"></div>
+
+      <div class="controls">
+        <div class="left">
+          <input
+            id="guess"
+            placeholder="Prova una lettera (A–Z)..."
+            maxlength="1"
+          />
+          <button id="btnGuess">Prova</button>
+          <button id="btnReset" class="secondary">Nuova frase</button>
+          <button id="btnReveal" class="secondary">Rivela frase</button>
+        </div>
+        <div class="meta">
+          <div>Esito: <span id="status">—</span></div>
+          <div class="used">Usate: <span id="usedLetters">—</span></div>
+        </div>
+      </div>
+
+      <p class="meta" style="margin-top: 14px">
+        Tip: puoi usare la tastiera direttamente. Accenti gestiti:
+        <code>E</code> rivela anche <code>È</code>.
+      </p>
+      <p class="meta" id="loadInfo" style="margin-top: 10px; opacity: 0.7"></p>
+    </div>
+
+    <script>
+      // File frasi
+      const PHRASE_FILE = "./phrases.json";
+
+      // --- Layout TV ---
+      const MAX_COLS = 14; // stile ruota: 14–16 è tipico; cambia qui se vuoi
+      const CASCADE_MS = 90;
+
+      const boardEl = document.getElementById("board");
+      const guessEl = document.getElementById("guess");
+      const statusEl = document.getElementById("status");
+      const usedEl = document.getElementById("usedLetters");
+      const catEl = document.getElementById("category");
+      const loadInfoEl = document.getElementById("loadInfo");
+      const winOverlayEl = document.getElementById("winOverlay");
+      const revealBtn = document.getElementById("btnReveal");
+
+      let PHRASES = [];
+      let phraseObj, phrase;
+      let revealed = new Set(),
+        used = new Set();
+      let winActive = false;
+      let winTimeout;
+      let winHideTimeout;
+
+      // tiles: lista piatta di tutte le celle "reali" (no blanks), con mapping al DOM
+      // ogni tile: { ch, el, base, isAlpha }
+      let tiles = [];
+
+      const isAlpha = (ch) => /[A-Za-zÀ-ÖØ-öø-ÿ]/.test(ch);
+      const normalizeChar = (c) =>
+        c
+          .toUpperCase()
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "");
+
+      async function loadPhrases() {
+        try {
+          const res = await fetch(PHRASE_FILE, { cache: "no-store" });
+          if (!res.ok) throw new Error(`HTTP ${res.status}`);
+          const data = await res.json();
+          if (!Array.isArray(data) || data.length === 0)
+            throw new Error("JSON vuoto o non è un array.");
+
+          PHRASES = data
+            .map((x) => ({
+              category: String(x.category ?? "—"),
+              text: String(x.text ?? "").trim(),
+            }))
+            .filter((x) => x.text.length > 0);
+
+          if (PHRASES.length === 0)
+            throw new Error(
+              "Nessuna frase valida trovata (campo 'text' mancante?).",
+            );
+
+          loadInfoEl.textContent = `Caricate ${PHRASES.length} frasi da ${PHRASE_FILE}`;
+          pickPhrase();
+        } catch (err) {
+          loadInfoEl.innerHTML =
+            `❌ Non riesco a caricare <code>${PHRASE_FILE}</code>. ` +
+            `Avvia un server locale (Python: <code>python3 -m http.server 8000</code>) e apri <code>http://localhost:8000</code>. ` +
+            `Dettaglio: ${err.message}`;
+          statusEl.textContent = "Errore caricamento frasi";
+          statusEl.className = "bad";
+        }
+      }
+
+      function pickPhrase() {
+        phraseObj = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+        phrase = phraseObj.text.trim();
+        revealed = new Set();
+        used = new Set();
+        winActive = false;
+        clearTimeout(winTimeout);
+        clearTimeout(winHideTimeout);
+        winOverlayEl.classList.remove("active", "fade");
+        winOverlayEl.setAttribute("aria-hidden", "true");
+        statusEl.textContent = "—";
+        statusEl.className = "";
+        catEl.textContent = phraseObj.category || "—";
+        renderBoardTV();
+        renderUsed();
+        guessEl.value = "";
+        guessEl.focus();
+      }
+
+      function showWinOverlay() {
+        if (winActive) return;
+        winActive = true;
+        winOverlayEl.classList.add("active");
+        winOverlayEl.classList.remove("fade");
+        winOverlayEl.setAttribute("aria-hidden", "false");
+
+        clearTimeout(winTimeout);
+        clearTimeout(winHideTimeout);
+
+        winTimeout = setTimeout(() => {
+          winOverlayEl.classList.add("fade");
+          winHideTimeout = setTimeout(() => {
+            winOverlayEl.classList.remove("active", "fade");
+            winOverlayEl.setAttribute("aria-hidden", "true");
+            winActive = false;
+          }, 900);
+        }, 10000);
+      }
+
+      function renderUsed() {
+        const arr = [...used].sort();
+        usedEl.textContent = arr.length ? arr.join(" ") : "—";
+      }
+
+      // --- Layout: spezza la frase in righe (senza spezzare le parole) ---
+      function splitIntoRowsTV(text, maxCols) {
+        // Tokenizza mantenendo spazi e punteggiatura, ma ragioniamo per parole.
+        // Strategia:
+        // - split per spazi (parole)
+        // - poi ricostruisce includendo un singolo spazio tra parole come "celle spazio"
+        const words = text.split(" ");
+        const rows = [];
+        let current = [];
+
+        function currentLen() {
+          return current.length;
+        }
+
+        for (let w = 0; w < words.length; w++) {
+          const word = words[w];
+
+          // Costruisci il blocco " [spazio] + word " se non è la prima parola in riga
+          const needed = [];
+          if (currentLen() > 0) needed.push(" "); // spazio tra parole
+          for (const ch of word) needed.push(ch);
+
+          if (currentLen() + needed.length <= maxCols) {
+            current.push(...needed);
+          } else {
+            // se la parola è troppo lunga per una riga vuota, la spezzettiamo brutalmente
+            if (currentLen() === 0 && needed.length > maxCols) {
+              // riempi la riga con i primi maxCols char della parola (senza lo spazio iniziale)
+              const chars = word.split("");
+              let i = 0;
+              while (i < chars.length) {
+                rows.push(chars.slice(i, i + maxCols));
+                i += maxCols;
+              }
+              current = [];
+            } else {
+              // chiudi riga corrente e riprova word su riga nuova
+              rows.push(current);
+              current = [];
+              // riprova la word senza spazio iniziale
+              const fresh = word.split("");
+              if (fresh.length <= maxCols) {
+                current.push(...fresh);
+              } else {
+                // anche qui spezza se enorme
+                let i = 0;
+                while (i < fresh.length) {
+                  rows.push(fresh.slice(i, i + maxCols));
+                  i += maxCols;
+                }
+                current = [];
+              }
+            }
+          }
+        }
+
+        if (current.length) rows.push(current);
+        return rows;
+      }
+
+      function renderBoardTV() {
+        boardEl.innerHTML = "";
+        tiles = [];
+
+        const rows = splitIntoRowsTV(phrase, MAX_COLS);
+
+        rows.forEach((rowChars) => {
+          const rowEl = document.createElement("div");
+          rowEl.className = "row";
+          rowEl.style.gridTemplateColumns = `repeat(${MAX_COLS}, var(--tile))`;
+
+          // per centrare: aggiungo "blank" a sinistra e destra.
+          // calcolo quanti spazi vuoti servono: blanksTot = maxCols - rowLen
+          const blanksTot = Math.max(0, MAX_COLS - rowChars.length);
+          const leftBlanks = Math.floor(blanksTot / 2);
+          const rightBlanks = blanksTot - leftBlanks;
+
+          const fullRow = [
+            ...Array(leftBlanks).fill({ type: "blank" }),
+            ...rowChars.map((ch) => ({ type: "char", ch })),
+            ...Array(rightBlanks).fill({ type: "blank" }),
+          ];
+
+          fullRow.forEach((cell) => {
+            const el = document.createElement("div");
+            const span = document.createElement("span");
+
+            if (cell.type === "blank") {
+              el.className = "tile blank";
+              span.textContent = "";
+              el.appendChild(span);
+              rowEl.appendChild(el);
+              return;
+            }
+
+            const ch = cell.ch;
+            span.textContent = ch;
+            el.appendChild(span);
+
+            if (ch === " ") {
+              el.className = "tile space";
+            } else if (!isAlpha(ch)) {
+              el.className = "tile punct";
+            } else {
+              el.className = "tile hidden";
+            }
+
+            rowEl.appendChild(el);
+
+            tiles.push({
+              ch,
+              el,
+              isAlpha: isAlpha(ch),
+              base: isAlpha(ch) ? normalizeChar(ch) : null,
+            });
+          });
+
+          boardEl.appendChild(rowEl);
+        });
+
+        updateMask(false, []);
+      }
+
+      function updateMask(withAnimation = true, newlyRevealedIdxs = []) {
+        tiles.forEach((t, idx) => {
+          if (!t.isAlpha) return;
+          const shouldShow = revealed.has(t.base);
+
+          if (shouldShow) {
+            t.el.classList.remove("hidden");
+            if (withAnimation && newlyRevealedIdxs.includes(idx)) {
+              t.el.classList.add("reveal");
+              setTimeout(() => t.el.classList.remove("reveal"), 260);
+            }
+          } else {
+            t.el.classList.add("hidden");
+          }
+        });
+      }
+
+      function guessLetter(raw) {
+        if (!raw) return;
+        const letter = raw[0];
+        if (!isAlpha(letter)) return;
+
+        const base = normalizeChar(letter);
+
+        if (used.has(base)) {
+          statusEl.textContent = `Già provata: ${base}`;
+          statusEl.className = "bad";
+          return;
+        }
+
+        used.add(base);
+        renderUsed();
+
+        const idxs = [];
+        tiles.forEach((t, i) => {
+          if (t.isAlpha && t.base === base) idxs.push(i);
+        });
+
+        if (!idxs.length) {
+          statusEl.textContent = `Non c'è: ${base}`;
+          statusEl.className = "bad";
+          return;
+        }
+
+        statusEl.textContent = `C'è! (${idxs.length})`;
+        statusEl.className = "good";
+        revealed.add(base);
+
+        // cascata reveal sulle occorrenze
+        idxs.forEach((idx, k) => {
+          setTimeout(() => updateMask(true, [idx]), CASCADE_MS * k);
+        });
+
+        setTimeout(
+          () => {
+            const done = tiles.every((t) => !t.isAlpha || revealed.has(t.base));
+            if (done) {
+              statusEl.textContent = "✅ Frase completata!";
+              statusEl.className = "good";
+              showWinOverlay();
+            }
+          },
+          CASCADE_MS * idxs.length + 60,
+        );
+      }
+
+      function revealPhrase() {
+        if (!phrase) return;
+        const confirmed = window.confirm(
+          "Sei sicuro? La frase verrà rivelata completamente."
+        );
+        if (!confirmed) return;
+
+        tiles.forEach((t) => {
+          if (t.isAlpha) revealed.add(t.base);
+        });
+        updateMask(true);
+        statusEl.textContent = "Frase rivelata";
+        statusEl.className = "good";
+        showWinOverlay();
+      }
+
+      // UI events
+      document.getElementById("btnGuess").addEventListener("click", () => {
+        guessLetter(guessEl.value);
+        guessEl.value = "";
+        guessEl.focus();
+      });
+
+      document.getElementById("btnReset").addEventListener("click", pickPhrase);
+      revealBtn.addEventListener("click", revealPhrase);
+
+      guessEl.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") {
+          guessLetter(guessEl.value);
+          guessEl.value = "";
+        }
+      });
+
+      window.addEventListener("keydown", (e) => {
+        if (document.activeElement === guessEl) return;
+        if (e.key.length === 1 && isAlpha(e.key)) {
+          guessLetter(e.key);
+        }
+      });
+
+      loadPhrases();
+    </script>
+  </body>
+</html>
