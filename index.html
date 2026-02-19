@@ -3,26 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Tabellone – Ruota (TV)</title>
     <style>
       :root {
-        --tile: 72px;
-        --gap: 12px;
-        --cols: 14; /* solo indicativo; la griglia vera la fa JS */
-        --ice-900: #0c1c36;
-        --ice-800: #0f2a55;
-        --ice-700: #14355e;
-        --ice-600: #1f4c75;
+        --tile: 74px;
+        --gap: 14px;
+        --cols: 14;
+        --ice-900: #0f233c;
+        --ice-800: #102f54;
+        --ice-700: #123d64;
+        --ice-600: #1b5a85;
         --snow: #f7fbff;
-        --glow: #8ed4ff;
+        --glow: #9ce1ff;
         --accent-red: #f04e45;
-        --snow-drift: rgba(255, 255, 255, 0.45);
+        --snow-drift: rgba(255, 255, 255, 0.7);
       }
 
       body {
         margin: 0;
         font-family: "Bebas Neue", "Oswald", "Tahoma", sans-serif;
-        background: linear-gradient(195deg, #f7fbff 0%, #d7e6ff 45%, #afc5ff 100%);
+        background-image:
+          linear-gradient(180deg, rgba(253, 253, 255, 0.95) 0%, rgba(231, 241, 255, 0.8) 40%, rgba(195, 216, 255, 0.9) 100%),
+          url("Milano_Cortina_2026_Cauldron_1.jpg");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
         color: var(--ice-900);
         display: flex;
         min-height: 100vh;
@@ -37,19 +41,32 @@
         content: "";
         position: fixed;
         inset: 0;
-        background-image:
-          radial-gradient(circle at 20% 20%, var(--snow-drift) 0 2px, transparent 3px),
-          radial-gradient(circle at 60% 40%, var(--snow-drift) 0 1px, transparent 3px),
-          radial-gradient(circle at 80% 10%, var(--snow-drift) 0 1.5px, transparent 3px); 
-        background-size: 180px 180px, 120px 120px, 200px 200px;
-        opacity: 0.6;
+        background: radial-gradient(circle at 20% 10%, rgba(255, 255, 255, 0.55) 0 30%, transparent 32%),
+          radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.35) 0 18%, transparent 20%),
+          radial-gradient(circle at 50% 70%, rgba(255, 255, 255, 0.25) 0 24%, transparent 26%);
+        opacity: 0.7;
         pointer-events: none;
         z-index: 0;
       }
 
+      body::after {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background-image:
+          radial-gradient(circle at 10% 40%, var(--snow-drift) 0 2px, transparent 4px),
+          radial-gradient(circle at 70% 80%, var(--snow-drift) 0 1px, transparent 3px),
+          radial-gradient(circle at 90% 50%, var(--snow-drift) 0 1.5px, transparent 4px);
+        background-size: 180px 180px, 140px 140px, 220px 220px;
+        opacity: 0.5;
+        pointer-events: none;
+        filter: blur(1px);
+        z-index: 0;
+      }
+
       .wrap {
-        width: min(1220px, 96vw);
-        padding: 32px;
+        width: min(1250px, 96vw);
+        padding: 36px;
         position: relative;
         z-index: 1;
       }
@@ -59,7 +76,7 @@
         align-items: baseline;
         justify-content: space-between;
         gap: 12px;
-        margin-bottom: 12px;
+        margin-bottom: 18px;
       }
 
       h1 {
@@ -70,42 +87,41 @@
         letter-spacing: 1.6px;
       }
       .cat {
-        opacity: 0.9;
-        font-size: 16px;
+        opacity: 0.95;
+        font-size: 18px;
         text-transform: uppercase;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        letter-spacing: 1.6px;
+      }
+      .cat strong {
+        font-size: 38px;
+        letter-spacing: 2px;
+        color: #0a2d55;
       }
 
       .board {
-        padding: 24px;
-        border-radius: 26px;
+        padding: 28px;
+        border-radius: 28px;
         background: linear-gradient(
             135deg,
-            rgba(255, 255, 255, 0.25),
-            rgba(255, 255, 255, 0.04)
+            rgba(255, 255, 255, 0.35),
+            rgba(255, 255, 255, 0.07)
           ),
           repeating-linear-gradient(
             90deg,
             rgba(255, 255, 255, 0.08) 0,
-            rgba(255, 255, 255, 0.08) 16px,
-            transparent 16px,
-            transparent 32px
+            rgba(255, 255, 255, 0.08) 18px,
+            transparent 18px,
+            transparent 36px
           );
-        border: 1px solid rgba(183, 205, 255, 0.5);
+        border: 1px solid rgba(208, 227, 255, 0.7);
         box-shadow:
-          0 24px 70px rgba(15, 24, 45, 0.45),
-          0 0 30px rgba(142, 212, 255, 0.3);
+          0 30px 90px rgba(15, 24, 45, 0.4),
+          0 0 40px rgba(188, 219, 255, 0.35);
         position: relative;
         overflow: hidden;
-      }
-
-      .board::before {
-        content: "";
-        position: absolute;
-        inset: 0;
-        background: url("Milano_Cortina_2026_Cauldron_1.jpg") center/cover no-repeat;
-        opacity: 0.18;
-        filter: saturate(1.1) contrast(1.05);
-        pointer-events: none;
       }
 
       .board::after {
@@ -178,14 +194,14 @@
       }
 
       .win-text {
-        font-size: 22px;
+        font-size: 32px;
         text-transform: uppercase;
         letter-spacing: 1.4px;
         text-align: center;
       }
 
       .win-image {
-        width: min(360px, 72vw);
+        width: min(420px, 72vw);
         height: auto;
         border-radius: 16px;
         box-shadow: 0 12px 48px rgba(0, 0, 0, 0.55);
@@ -241,19 +257,19 @@
       .tile {
         width: var(--tile);
         height: var(--tile);
-        border-radius: 14px;
+        border-radius: 16px;
         display: grid;
         place-items: center;
         background: linear-gradient(
           180deg,
-          rgba(255, 255, 255, 0.6),
-          rgba(138, 197, 255, 0.25)
+          rgba(255, 255, 255, 0.65),
+          rgba(168, 214, 255, 0.4)
         );
-        border: 1px solid rgba(142, 212, 255, 0.6);
+        border: 1px solid rgba(173, 221, 255, 0.7);
         box-shadow:
           inset 0 1px 0 rgba(255, 255, 255, 0.6),
-          0 8px 22px rgba(10, 26, 50, 0.55);
-        font-size: 38px;
+          0 10px 26px rgba(10, 26, 50, 0.45);
+        font-size: 40px;
         font-weight: 900;
         letter-spacing: 1px;
         text-transform: uppercase;
@@ -320,9 +336,9 @@
       }
 
       .controls {
-        margin-top: 20px;
+        margin-top: 24px;
         display: flex;
-        gap: 14px;
+        gap: 16px;
         flex-wrap: wrap;
         align-items: center;
         justify-content: space-between;
@@ -336,13 +352,13 @@
       }
 
       input {
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.95);
         border: 1px solid rgba(16, 33, 65, 0.25);
         color: var(--ice-900);
         padding: 12px 16px;
         border-radius: 14px;
-        font-size: 18px;
-        width: 250px;
+        font-size: 20px;
+        width: 280px;
         outline: none;
         box-shadow: inset 0 0 12px rgba(120, 151, 210, 0.25);
       }
@@ -351,14 +367,14 @@
         background: linear-gradient(180deg, #2f8bdc, #1b5fb0);
         border: 0;
         color: white;
-        padding: 12px 18px;
+        padding: 14px 20px;
         border-radius: 14px;
         font-weight: 800;
         cursor: pointer;
         box-shadow: 0 12px 26px rgba(16, 44, 90, 0.45);
         text-transform: uppercase;
         letter-spacing: 1px;
-        font-size: 16px;
+        font-size: 17px;
       }
 
       button.secondary {
@@ -392,8 +408,7 @@
   <body>
     <div class="wrap">
       <div class="topline">
-        <h1>Tabellone frase (TV)</h1>
-        <div class="cat">Categoria: <strong id="category">—</strong></div>
+        <div class="cat">Indizio: <strong id="category">—</strong></div>
       </div>
 
       <img
@@ -404,7 +419,7 @@
 
       <div id="winOverlay" class="win-overlay" aria-hidden="true">
         <div class="win-card" role="dialog" aria-live="polite">
-          <div class="win-text">compliemnti! 20 cromosomi per te!</div>
+            <div class="win-text" style="font-size: 32px; color: #b9ffcc;">Complimenti! 20 cromosomi per te!</div>
           <img class="win-image" src="down.webp" alt="Premio" />
         </div>
       </div>
@@ -419,7 +434,7 @@
             maxlength="1"
           />
           <button id="btnGuess">Prova</button>
-          <button id="btnReset" class="secondary">Nuova frase</button>
+          <button id="btnReset" class="secondary">Vai alla prossima frase</button>
           <button id="btnReveal" class="secondary">Rivela frase</button>
         </div>
         <div class="meta">
@@ -436,32 +451,37 @@
     </div>
 
     <script>
-      // File frasi
-      const PHRASE_FILE = "./phrases.json";
+      const PHRASES = [
+        {
+          hint: "Fattuale",
+          text: "CALANO FATTURATO E PIL, MA AUMENTANO I GAY",
+        },
+        {
+          hint: "Strani incontri",
+          text: "A PRAGA SI TROVANO STATUE DI PINGUINI GIALLI",
+        },
+      ];
 
       // --- Layout TV ---
-      const MAX_COLS = 14; // stile ruota: 14–16 è tipico; cambia qui se vuoi
+      const MAX_COLS = 14; // stile ruota: 14–16 è tipico;
       const CASCADE_MS = 90;
+      let currentIndex = 0;
 
       const boardEl = document.getElementById("board");
       const guessEl = document.getElementById("guess");
       const statusEl = document.getElementById("status");
       const usedEl = document.getElementById("usedLetters");
-      const catEl = document.getElementById("category");
+      const hintEl = document.getElementById("category");
       const loadInfoEl = document.getElementById("loadInfo");
       const winOverlayEl = document.getElementById("winOverlay");
       const revealBtn = document.getElementById("btnReveal");
 
-      let PHRASES = [];
       let phraseObj, phrase;
-      let revealed = new Set(),
-        used = new Set();
+      let revealed = new Set();
+      let used = new Set();
       let winActive = false;
       let winTimeout;
       let winHideTimeout;
-
-      // tiles: lista piatta di tutte le celle "reali" (no blanks), con mapping al DOM
-      // ogni tile: { ch, el, base, isAlpha }
       let tiles = [];
 
       const isAlpha = (ch) => /[A-Za-zÀ-ÖØ-öø-ÿ]/.test(ch);
@@ -471,40 +491,11 @@
           .normalize("NFD")
           .replace(/[\u0300-\u036f]/g, "");
 
-      async function loadPhrases() {
-        try {
-          const res = await fetch(PHRASE_FILE, { cache: "no-store" });
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const data = await res.json();
-          if (!Array.isArray(data) || data.length === 0)
-            throw new Error("JSON vuoto o non è un array.");
-
-          PHRASES = data
-            .map((x) => ({
-              category: String(x.category ?? "—"),
-              text: String(x.text ?? "").trim(),
-            }))
-            .filter((x) => x.text.length > 0);
-
-          if (PHRASES.length === 0)
-            throw new Error(
-              "Nessuna frase valida trovata (campo 'text' mancante?).",
-            );
-
-          loadInfoEl.textContent = `Caricate ${PHRASES.length} frasi da ${PHRASE_FILE}`;
-          pickPhrase();
-        } catch (err) {
-          loadInfoEl.innerHTML =
-            `❌ Non riesco a caricare <code>${PHRASE_FILE}</code>. ` +
-            `Avvia un server locale (Python: <code>python3 -m http.server 8000</code>) e apri <code>http://localhost:8000</code>. ` +
-            `Dettaglio: ${err.message}`;
-          statusEl.textContent = "Errore caricamento frasi";
-          statusEl.className = "bad";
+      function pickPhrase(advance = false) {
+        if (advance) {
+          currentIndex = (currentIndex + 1) % PHRASES.length;
         }
-      }
-
-      function pickPhrase() {
-        phraseObj = PHRASES[Math.floor(Math.random() * PHRASES.length)];
+        phraseObj = PHRASES[currentIndex];
         phrase = phraseObj.text.trim();
         revealed = new Set();
         used = new Set();
@@ -515,11 +506,12 @@
         winOverlayEl.setAttribute("aria-hidden", "true");
         statusEl.textContent = "—";
         statusEl.className = "";
-        catEl.textContent = phraseObj.category || "—";
+        hintEl.textContent = phraseObj.hint;
         renderBoardTV();
         renderUsed();
         guessEl.value = "";
         guessEl.focus();
+        loadInfoEl.textContent = `Frase ${currentIndex + 1}/${PHRASES.length}`;
       }
 
       function showWinOverlay() {
@@ -549,10 +541,6 @@
 
       // --- Layout: spezza la frase in righe (senza spezzare le parole) ---
       function splitIntoRowsTV(text, maxCols) {
-        // Tokenizza mantenendo spazi e punteggiatura, ma ragioniamo per parole.
-        // Strategia:
-        // - split per spazi (parole)
-        // - poi ricostruisce includendo un singolo spazio tra parole come "celle spazio"
         const words = text.split(" ");
         const rows = [];
         let current = [];
@@ -563,18 +551,14 @@
 
         for (let w = 0; w < words.length; w++) {
           const word = words[w];
-
-          // Costruisci il blocco " [spazio] + word " se non è la prima parola in riga
           const needed = [];
-          if (currentLen() > 0) needed.push(" "); // spazio tra parole
+          if (currentLen() > 0) needed.push(" ");
           for (const ch of word) needed.push(ch);
 
           if (currentLen() + needed.length <= maxCols) {
             current.push(...needed);
           } else {
-            // se la parola è troppo lunga per una riga vuota, la spezzettiamo brutalmente
             if (currentLen() === 0 && needed.length > maxCols) {
-              // riempi la riga con i primi maxCols char della parola (senza lo spazio iniziale)
               const chars = word.split("");
               let i = 0;
               while (i < chars.length) {
@@ -583,15 +567,12 @@
               }
               current = [];
             } else {
-              // chiudi riga corrente e riprova word su riga nuova
               rows.push(current);
               current = [];
-              // riprova la word senza spazio iniziale
               const fresh = word.split("");
               if (fresh.length <= maxCols) {
                 current.push(...fresh);
               } else {
-                // anche qui spezza se enorme
                 let i = 0;
                 while (i < fresh.length) {
                   rows.push(fresh.slice(i, i + maxCols));
@@ -618,8 +599,6 @@
           rowEl.className = "row";
           rowEl.style.gridTemplateColumns = `repeat(${MAX_COLS}, var(--tile))`;
 
-          // per centrare: aggiungo "blank" a sinistra e destra.
-          // calcolo quanti spazi vuoti servono: blanksTot = maxCols - rowLen
           const blanksTot = Math.max(0, MAX_COLS - rowChars.length);
           const leftBlanks = Math.floor(blanksTot / 2);
           const rightBlanks = blanksTot - leftBlanks;
@@ -718,7 +697,6 @@
         statusEl.className = "good";
         revealed.add(base);
 
-        // cascata reveal sulle occorrenze
         idxs.forEach((idx, k) => {
           setTimeout(() => updateMask(true, [idx]), CASCADE_MS * k);
         });
@@ -752,14 +730,15 @@
         showWinOverlay();
       }
 
-      // UI events
       document.getElementById("btnGuess").addEventListener("click", () => {
         guessLetter(guessEl.value);
         guessEl.value = "";
         guessEl.focus();
       });
 
-      document.getElementById("btnReset").addEventListener("click", pickPhrase);
+      document
+        .getElementById("btnReset")
+        .addEventListener("click", () => pickPhrase(true));
       revealBtn.addEventListener("click", revealPhrase);
 
       guessEl.addEventListener("keydown", (e) => {
@@ -776,7 +755,7 @@
         }
       });
 
-      loadPhrases();
+      pickPhrase();
     </script>
   </body>
 </html>
